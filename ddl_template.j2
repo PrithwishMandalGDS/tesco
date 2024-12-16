@@ -1,0 +1,29 @@
+CREATE TABLE Technical_Contract_Tables (
+{% for field in fields %}
+    {{ field.name }}
+    {% if field.dataType == 'UUID' %}
+    INT
+    {% elif field.dataType == 'STRING' and not field.has_enum %}
+    STRING
+    {% elif field.dataType == 'STRING' and field.has_enum %}
+        {% for constraint in field['constraints'] %}
+            {% if constraint.startswith('ENUM') %}
+            STRING
+            {% endif %}
+        {% endfor %}
+    {% else %}
+    {{ field.dataType }}
+    {% endif %}
+    {% if field.dataLength and field.dataType not in ['UUID', 'STRING'] %}
+    ({{ field.dataLength }})
+    {% endif %}
+    {% if field.constraints %}
+        {% for constraint in field['constraints'] %}
+            {% if not constraint.startswith('ENUM') %}
+            {{ constraint }}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {% if not loop.last %},{% endif %}
+{% endfor %}
+);

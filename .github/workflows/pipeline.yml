@@ -1,0 +1,148 @@
+name: Python Workflow
+
+on:
+  push:
+    branches:
+      - feat/databricks-sql
+  pull_request:
+
+jobs:
+  setup-and-install:
+    runs-on: ubuntu-latest 
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout another repository
+        uses: actions/checkout@v4
+        with:
+          repository: PrithwishMandalGDS/technical_contract
+          ref: main                   
+          path: technical_contract
+      
+      - name: Keep only Technical_Contract.xlsx
+        run: |
+          mkdir -p ./filtered
+          cp technical_contract/Technical_Contract.xlsx ./filtered/
+          rm -rf technical_contract
+          mv ./filtered/Technical_Contract.xlsx ./
+      
+      - name: Verify retained file
+        run: ls -l
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Python and pip dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Python script
+        run: python app.py
+      
+      - name: Save repository state
+        run: |
+          mkdir temp_dir
+          rsync -a --exclude=temp_dir ./ temp_dir/
+          tar -czf sql_lint.tar.gz -C temp_dir .
+          rm -rf temp_dir
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sql_lint
+          path: sql_lint.tar.gz
+  
+  sql-fluff-lint:
+    runs-on: ubuntu-latest
+    needs: setup-and-install
+
+    steps:
+      - name: Download repository state
+        uses: actions/download-artifact@v4
+        with:
+          name: sql_lint
+          
+      - name: Extract repository
+        run: tar -xzf sql_lint.tar.gz
+
+      - name: Set up Python for SQLFluff
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install SQLFluff
+        run: pip install sqlfluff
+
+      - name: Run SQLFluff Lint
+        run: |
+          echo "Running SQL Fluff lint"
+          sqlfluff lint output.sql --dialect ansi
+        continue-on-error: true
+
+      - name: Save repository state
+        run: |
+          mkdir temp_dir
+          rsync -a --exclude=temp_dir ./ temp_dir/
+          tar -czf sql_lint_fluff.tar.gz -C temp_dir .
+          rm -rf temp_dir
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sql_lint_fluff
+          path: sql_lint_fluff.tar.gz
+
+  databricks-cli:
+    runs-on: ubuntu-latest
+    needs: sql-fluff-lint
+
+    steps:
+      - name: Download repository state
+        uses: actions/download-artifact@v4
+        with:
+          name: sql_lint_fluff
+          
+      - name: Extract repository
+        run: tar -xzf sql_lint_fluff.tar.gz
+
+      - name: Set up Python for SQLFluff
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Databricks CLI
+        run: |
+          pip install databricks-cli
+          databricks --version
+
+      - name: Install databricks sql connector
+        run: pip install databricks databricks-sql-connector
+      
+      - name: Configure Databricks    
+        run: |
+          databricks configure --token << EOF
+          ${{ secrets.DATABRICKS_HOST }}
+          ${{ secrets.DATABRICKS_TOKEN }}
+          EOF
+
+      - name: Run Python script
+        run: python run_databricks.py
+      
+      - name: Save repository state
+        run: |
+          mkdir temp_dir
+          rsync -a --exclude=temp_dir ./ temp_dir/
+          tar -czf databricks.tar.gz -C temp_dir .
+          rm -rf temp_dir
+          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: databricks
+          path: databricks.tar.gz
+          
