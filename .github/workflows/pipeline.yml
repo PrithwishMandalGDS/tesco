@@ -126,8 +126,8 @@ jobs:
       - name: Configure Databricks    
         run: |
           databricks configure --token << EOF
-          ${{ secrets.DATABRICKS_HOST }}
-          ${{ secrets.DATABRICKS_TOKEN }}
+          https://dbc-79d364f2-dcf6.cloud.databricks.com
+          dapid405b05d0e434e0f5ef52bb3b73f9310
           EOF
 
       - name: Run Python script
