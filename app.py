@@ -3,6 +3,7 @@ import pandas as pd
 import jinja2
 import yaml
 import re
+import sys
 
 excel_file = 'Technical_Contract.xlsx'
 df = pd.read_excel(excel_file, sheet_name='Sheet1', usecols='A')

@@ -44,6 +44,15 @@ jobs:
       - name: Run Python script
         run: python app.py
       
+      - name: Committing changes"
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add ./dev/raw_on_prem/output.sql
+          git diff --cached --quiet || git commit -m " Add generated files[skip ci]"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
+          echo "Changes committed and pushed for SQL Query"
+      
       - name: Save repository state
         run: |
           mkdir temp_dir
