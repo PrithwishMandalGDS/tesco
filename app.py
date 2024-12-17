@@ -46,7 +46,7 @@ ddl_statement = template.render(fields=columns)
 sql_single_line = ' '.join(line.strip() for line in ddl_statement.splitlines() if line.strip())
 print(sql_single_line)
 
-output_file = 'output.sql'
+output_file = 'dev/raw_on_prem/output.sql'
 with open(output_file, 'w') as file:
     file.write(sql_single_line)
 

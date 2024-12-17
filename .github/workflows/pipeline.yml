@@ -97,52 +97,52 @@ jobs:
           name: sql_lint_fluff
           path: sql_lint_fluff.tar.gz
 
-  databricks-cli:
-    runs-on: ubuntu-latest
-    needs: sql-fluff-lint
+  # databricks-cli:
+  #   runs-on: ubuntu-latest
+  #   needs: sql-fluff-lint
 
-    steps:
-      - name: Download repository state
-        uses: actions/download-artifact@v4
-        with:
-          name: sql_lint_fluff
+  #   steps:
+  #     - name: Download repository state
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: sql_lint_fluff
           
-      - name: Extract repository
-        run: tar -xzf sql_lint_fluff.tar.gz
+  #     - name: Extract repository
+  #       run: tar -xzf sql_lint_fluff.tar.gz
 
-      - name: Set up Python for SQLFluff
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+  #     - name: Set up Python for SQLFluff
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: '3.x'
 
-      - name: Install Databricks CLI
-        run: |
-          pip install databricks-cli
-          databricks --version
+  #     - name: Install Databricks CLI
+  #       run: |
+  #         pip install databricks-cli
+  #         databricks --version
 
-      - name: Install databricks sql connector
-        run: pip install databricks databricks-sql-connector
+  #     - name: Install databricks sql connector
+  #       run: pip install databricks databricks-sql-connector
       
-      - name: Configure Databricks    
-        run: |
-          databricks configure --token << EOF
-          https://dbc-79d364f2-dcf6.cloud.databricks.com
-          dapid405b05d0e434e0f5ef52bb3b73f9310
-          EOF
+  #     - name: Configure Databricks    
+  #       run: |
+  #         databricks configure --token << EOF
+  #         https://dbc-79d364f2-dcf6.cloud.databricks.com
+  #         dapid405b05d0e434e0f5ef52bb3b73f9310
+  #         EOF
 
-      - name: Run Python script
-        run: python run_databricks.py ${{ secrets.SERVER_HOSTNAME }} ${{ secrets.DATABRICKS_TOKEN }}
+  #     - name: Run Python script
+  #       run: python run_databricks.py ${{ secrets.SERVER_HOSTNAME }} ${{ secrets.DATABRICKS_TOKEN }}
       
-      - name: Save repository state
-        run: |
-          mkdir temp_dir
-          rsync -a --exclude=temp_dir ./ temp_dir/
-          tar -czf databricks.tar.gz -C temp_dir .
-          rm -rf temp_dir
+  #     - name: Save repository state
+  #       run: |
+  #         mkdir temp_dir
+  #         rsync -a --exclude=temp_dir ./ temp_dir/
+  #         tar -czf databricks.tar.gz -C temp_dir .
+  #         rm -rf temp_dir
           
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: databricks
-          path: databricks.tar.gz
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: databricks
+  #         path: databricks.tar.gz
           
