@@ -1,5 +1,6 @@
 from databricks import sql
 import os
+import sys
 
 server_hostname = sys.argv[1]
 access_token = sys.argv[2]
