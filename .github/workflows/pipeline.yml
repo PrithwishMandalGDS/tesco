@@ -131,7 +131,7 @@ jobs:
           EOF
 
       - name: Run Python script
-        run: python run_databricks.py
+        run: python run_databricks.py ${{ secrets.SERVER_HOSTNAME }} ${{ secrets.DATABRICKS_TOKEN }}
       
       - name: Save repository state
         run: |

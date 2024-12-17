@@ -1,10 +1,13 @@
 from databricks import sql
 import os
 
+server_hostname = sys.argv[1]
+access_token = sys.argv[2]
+
 connection = sql.connect(
-    server_hostname="dbc-79d364f2-dcf6.cloud.databricks.com",
+    server_hostname=server_hostname,
     http_path="/sql/1.0/warehouses/60751e1cc45a0166",
-    access_token="dapid405b05d0e434e0f5ef52bb3b73f9310"
+    access_token=access_token
 )
 
 cursor = connection.cursor()
